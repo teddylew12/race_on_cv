@@ -1,6 +1,8 @@
 import cv2
 from pupil_apriltags import Detector
 import numpy as np
+from argparse import  ArgumentParser
+from pathlib import Path
 def find_top_left_corner(corners):
     min_idx=0
     min_val=100000
@@ -20,6 +22,10 @@ def find_top_left_corner(corners):
     right= (int(corners[max_idx][0]), int(corners[max_idx][1]))
     return left,right
 #Load the image
+parser = ArgumentParser(description='FilePath')
+parser.add_argument('-f','--filename',required=True,help="path to your file within the Videos folder")
+args=parser.parse_args()
+filename=Path(f"Videos/{args.filename}")
 video = cv2.VideoCapture("Videos/la_video_2.MOV")
 # Start the detector
 detector = Detector(families='tagStandard41h12')
