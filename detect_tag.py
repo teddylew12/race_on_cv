@@ -6,8 +6,8 @@ import numpy
 
 TAG_FAMILY = 'tagStandard41h12'
 window_size = (640, 480)
-TAG_SIZE = .5*.5
-# CAMERA_PARAMS=[]
+TAG_SIZE = .134*.134
+CAMERA_PARAMS = [676.8845370049945, 678.3029956779335, 316.91969145450196, 255.37977391564544]
 cap = cv2.VideoCapture(0)
 
 cap.set(3, window_size[0])  # set width
@@ -20,7 +20,7 @@ at_detector = Detector(families=TAG_FAMILY,
                        refine_edges=1,
                        decode_sharpening=0.25,
                        debug=0)
-
+# index = 0
 while True:
     # Capture frame-by-frame
     ret, frame = cap.read()
@@ -28,14 +28,19 @@ while True:
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
     # detect tags
-    tags = at_detector.detect(gray, estimate_tag_pose=False, tag_size=TAG_SIZE)
+    tags = at_detector.detect(gray, estimate_tag_pose=True, tag_size=TAG_SIZE, camera_params=CAMERA_PARAMS)
 
     # show video in realtime
     cv2.imshow('frame', gray)
 
     # print the detected result on terminal
     if tags:
-        print(f"Tag ID: {tags[0].tag_id}")
+        print(f"Tag ID: {tags[0].tag_id}\n Tag Pose: {tags[0].pose_t}")
+        # write a image
+        # out = cv2.imwrite('cap'+str(index)+'.jpg', frame)
+        # index += 1
+        # if index == 2:
+        #     break
     else:
         print("no tag detected")
 
