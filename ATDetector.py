@@ -50,9 +50,7 @@ class ATDetector:
         for tag in detected_tags:
             print(f"Tag {tag.tag_id} estimates the camera at:\nX:{tag.pose_t[0,0]}\n"f"Y:{tag.pose_t[1,0]}"
                   f"\nZ:{tag.pose_t[2,0]}")
-
-    def visualize_image_detections(self, fname, scale=.3):
-        img = cv2.imread(fname, cv2.IMREAD_GRAYSCALE)
+    def visualize_frame(self,img,scale):
         if self.camera["fisheye"]:
             img = self.undistort(img)
         detected_tags = self.detector.detect(img, estimate_tag_pose=False)
@@ -75,7 +73,12 @@ class ATDetector:
             text_loc = (left[0], left[1] - area)
             color = cv2.putText(color, f"Tag #{tag.tag_id}", text_loc, fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                                 fontScale=.05 * area, color=(255, 0, 0), thickness=5)
-        color = self.scale(color, scale)
+        return self.scale(color, scale)
+
+
+    def visualize_image_detections(self, fname, scale=.3):
+        img = cv2.imread(fname, cv2.IMREAD_GRAYSCALE)
+        color=self.visualize_frame(img,scale)
         cv2.imshow("Image With Detections", color)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
@@ -87,29 +90,8 @@ class ATDetector:
             if not ret:
                 break
             gray_raw = cv2.cvtColor(color_raw, cv2.COLOR_BGR2GRAY)
-            gray = self.undistort(gray_raw)
-            # Detect Tags
-            tags = self.detector.detect(gray, estimate_tag_pose=False)
-            img = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
-            for tag in sorted(tags, key=lambda x: x.tag_id):
-                # Get corners of the tag in the image
-                left, right = self.find_top_left_corner(tag.corners)
-                area = (np.abs(left[0] - right[0])) ^ 2
-                # Add a box around the tag
-                clr = (255, 255, 0)
-                img = cv2.rectangle(img, left, right, clr, thickness=10)
-                # Add some text with the tag number
-                text_loc = (left[0], left[1] - area)
-                img = cv2.putText(img, f"Tag #{tag.tag_id}", text_loc, fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                                  fontScale=.05 * area,
-                                  color=(255, 0, 0), thickness=5)
-                img = cv2.circle(img, (int(tag.corners[0][0]), int(tag.corners[0][1])), 10, color=(255, 0, 255),
-                                 thickness=10)
-                img = cv2.circle(img, (int(tag.corners[1][0]), int(tag.corners[1][1])), 10, color=(128, 128, 255),
-                                 thickness=10)
-            # resize image
-            img = self.scale(img, scale)
-            cv2.imshow(str(fname), img)
+            color=self.visualize_frame(gray_raw,scale)
+            cv2.imshow(str(fname), color)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
