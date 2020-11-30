@@ -19,11 +19,11 @@ The intrinsic matrix maps from the 3D camera coordinates to the 2D homogenous pi
 
 ##### Focal Length Parameters
 
-The focal length parameters, f~x~ and f~y~, allow us to convert from pixel units to real world units (e.g. cm). Most cameras have non-square pixels, so two different parameters are needed. 
+The focal length parameters, f_x and f_y, allow us to convert from pixel units to real world units (e.g. cm). Most cameras have non-square pixels, so two different parameters are needed. 
 
 ##### Principal Point Offset Parameters
 
-The principal point offset parameters, x~0~ and y~0~ move the origin of the camera coordinate system to the origin of the image coordinate system.
+The principal point offset parameters, x_0 and y_0 move the origin of the camera coordinate system to the origin of the image coordinate system.
 
 ![pp_offset](Images\pp_offset.PNG)
 
@@ -34,9 +34,9 @@ The fisheye lenses cause radial distortion, where light rays bend more near the 
 <img src="Images\distortion.PNG" alt="distortion" style="zoom:130%;" />
 
 To convert from the distorted coordinate to the undistorted coordinate, we use a degree-8 polynomial. 
-$$
+
 θ_{distorted} = θ(1 + d_1 * θ^2 + d_2 * θ^4 + d_3 * θ^6 + d_4 * θ^8)
-$$
+
 
 
 
