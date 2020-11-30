@@ -47,7 +47,7 @@ How do we find all 8 parameters? A checkerboard! We can find 2D pixel coordinate
 ######  Tips for a Accurate Camera Calibration
 
 - Take a lot of photos from a lot of different angles. You want at least 30 images of the checkerboard (50 is better!), with some close shots, some far shots and shots at all edges of the image. In addition, tilting the checkerboard forward and backwards helps the accuracy! Here are some good examples of all the different ways to move the checkerboard.
-<img src="Images/cheboard_examples.png"  />
+<img src="Images/checkerboard_examples.png"  />
 
 - Use a very well lit room, doing this at night or from only one point source of light will hurt the accuracy of the calibration.
 - Use a high quality checkerboard, a printed piece of paper will likely not be accurate enough, I'd recommend paying $5 at Fedex for them to print it onto a foam board.
