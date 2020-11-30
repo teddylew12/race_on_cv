@@ -4,7 +4,7 @@
 
 Fisheye, or wide-angle, cameras capture a larger FOV than normal pinhole cameras, but as a side effect, lines become curves around the edges of the image.  
 
-![<img src="C:\Users\Ted\Desktop\RACE_ON\race_on_cv\Images\transformation.PNG" alt="transformation" style="zoom:30%;" />](C:\Users\Ted\Desktop\RACE_ON\race_on_cv\Images\pinhole_fisheye.png)
+![<img src="Images\transformation.PNG" alt="transformation" style="zoom:30%;" />](Images\pinhole_fisheye.png)
 
 To use the images from a fisheye camera, we need to un-distort the image before downstream tasks. 
 
@@ -15,7 +15,7 @@ To correct the distortion from a fisheye image, we need the  intrinsic matrix (K
 
 The intrinsic matrix maps from the 3D camera coordinates to the 2D homogenous pixel values of the actual image.  The model we use has 4 parameters, two focal length parameters and two principal point offset parameters, we assume the 5th parameter *s* is 0.
 
-![instrinsic](C:\Users\Ted\Desktop\RACE_ON\race_on_cv\Images\instrinsic.PNG)
+![instrinsic](Images\instrinsic.PNG)
 
 ##### Focal Length Parameters
 
@@ -25,13 +25,13 @@ The focal length parameters, f~x~ and f~y~, allow us to convert from pixel units
 
 The principal point offset parameters, x~0~ and y~0~ move the origin of the camera coordinate system to the origin of the image coordinate system.
 
-![pp_offset](C:\Users\Ted\Desktop\RACE_ON\race_on_cv\Images\pp_offset.PNG)
+![pp_offset](Images\pp_offset.PNG)
 
 ### Distortion Array
 
 The fisheye lenses cause radial distortion, where light rays bend more near the edge of the lens compared to the center. 
 
-<img src="C:\Users\Ted\Desktop\RACE_ON\race_on_cv\Images\distortion.PNG" alt="distortion" style="zoom:130%;" />
+<img src="Images\distortion.PNG" alt="distortion" style="zoom:130%;" />
 
 To convert from the distorted coordinate to the undistorted coordinate, we use a degree-8 polynomial. 
 $$
@@ -47,7 +47,7 @@ How do we find all 8 parameters? A checkerboard! We can find 2D pixel coordinate
 
 ######  Tips for a Accurate Camera Calibration
 
-- Take a lot of photos from a lot of different angles. You want at least 30 images of the checkerboard (50 is better!), with some close shots, some far shots and shots at all edges of the image. In addition, tilting the checkerboard forward and backwards helps the accuracy! Here are some good examples of all the different ways to move the checkerboard![checkerboard_examples](C:\Users\Ted\Desktop\RACE_ON\race_on_cv\Images\checkerboard_examples.png)
+- Take a lot of photos from a lot of different angles. You want at least 30 images of the checkerboard (50 is better!), with some close shots, some far shots and shots at all edges of the image. In addition, tilting the checkerboard forward and backwards helps the accuracy! Here are some good examples of all the different ways to move the checkerboard![checkerboard_examples](Images\checkerboard_examples.png)
 
 - Use a very well lit room, doing this at night or from only one point source of light will hurt the accuracy of the calibration.
 - Use a high quality checkerboard, a printed piece of paper will likely not be accurate enough, I'd recommend paying $5 at Fedex for them to print it onto a foam board.
