@@ -2,7 +2,7 @@
 
 Apriltags are visual markers (called fiducial markers) that acts as landmarks for the car to detect. Once these landmarks are detected, the car can localize itself on the track and infer its orientation and speed. 
 
-![apriltags](C:\Users\Ted\Desktop\RACE_ON\race_on_cv\Images\apriltags.png)
+![apriltags](Images/apriltags.png)
 
 ###### Pre-Requisites
 
@@ -30,19 +30,19 @@ To use AprilTags, we need a few things:
 
 - Translation Matrix: Translates position from one frame to another
 
-  ![2d_translation_homogenous](C:\Users\Ted\Desktop\RACE_ON\race_on_cv\Images\2d_translation_homogenous.PNG)
+  ![2d_translation_homogenous](Images/2d_translation_homogenous.PNG)
 
 - Rotation Matrix: Translates orientation from one frame to another
 
-  ![2d_rotation_homogenous](C:\Users\Ted\Desktop\RACE_ON\race_on_cv\Images\2d_rotation_homogenous.PNG)
+  ![2d_rotation_homogenous](Images/2d_rotation_homogenous.PNG)
 
 - Rigid Body Transformation Matrix: Combines a rotation and translation matrix 
 
-  <img src="C:\Users\Ted\Desktop\RACE_ON\race_on_cv\Images\transformation.PNG" alt="transformation" style="zoom:30%;" />
+  <img src="Images/transformation.PNG" style="zoom:30%;" />
 
 - When using homogenous coordinates, this can be combined into one matrix
 
-  ![2d_maxtrix_trans](C:\Users\Ted\Desktop\RACE_ON\race_on_cv\Images\2d_maxtrix_trans.PNG)
+  ![2d_maxtrix_trans](Images/2d_maxtrix_trans.PNG)
 
   
 
@@ -50,11 +50,11 @@ To use AprilTags, we need a few things:
 
 First we need to print our AprilTags (ideally on foam board). We use the default tagStandard52h13 family of tags. Once we have them printed, we need to measure the tag size. Follow this photo guide, only measuring on the inside. Also make sure the tag is square by measuring both the height and width of the tag, otherwise it won't work. 
 
-![tag_measuring](C:\Users\Ted\Desktop\RACE_ON\race_on_cv\Images\tag_measuring.png)
+![tag_measuring](Images/tag_measuring.png)
 
 Next, we place them on the wall, or wherever we will go. We need to make sure the tag is correctly placed, with the correct orientation based off the photo below. 
 
-![tag_corners](C:\Users\Ted\Desktop\RACE_ON\race_on_cv\Images\tag_corners.png)
+![tag_corners](Images/tag_corners.png)
 
 To double check the correct orientation, take a photo and run the `visualize_image_detections()` function and confirm that the two colored corners are both on the bottom.  
 
@@ -75,9 +75,8 @@ Here is where the AprilTags come in. They give us the 3x3 rotation matrix and 3x
 ##### Putting it all Together
 
 Because we are using homogenous coordinates, we can use a composition of both 4x4 matrices to get the camera location in the world frame. 
-$$
-P_{camera}= ^{camera}M_{Tag} * ^{Tag}M_{World} * P_{world}
-$$
+![apriltags](Images/linking_transforms.png)
+
 
 
 
