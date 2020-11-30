@@ -4,7 +4,9 @@
 
 Fisheye, or wide-angle, cameras capture a larger FOV than normal pinhole cameras, but as a side effect, lines become curves around the edges of the image.  
 
-![<img src="Images\transformation.PNG" alt="transformation" style="zoom:30%;" />](Images\pinhole_fisheye.png)
+<img src="Images\transformation.PNG" alt="transformation" style="zoom:30%;" />
+
+![pinhole_fisheye](Images\pinhole_fisheye.png)
 
 To use the images from a fisheye camera, we need to un-distort the image before downstream tasks. 
 
