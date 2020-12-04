@@ -75,7 +75,7 @@ Here is where the AprilTags come in. They give us the 3x3 rotation matrix and 3x
 ##### Putting it all Together
 
 Because we are using homogenous coordinates, we can use a composition of both 4x4 matrices to get the camera location in the world frame. 
-![apriltags](Images/linking_transforms.png)
+![linking_transforms](Images/linking_transforms.PNG)
 
 
 
