@@ -58,7 +58,7 @@ Next, we place them on the wall, or wherever we will go. We need to make sure th
 
 To double check the correct orientation, take a photo and run the `visualize_image_detections()` function and confirm that the two colored corners are both on the bottom.  
 
-![tag_example](Images/tag_example.png)
+![tag_example](Images/tag_example.PNG)
 
 ### Pose Estimation and Localization
 
