@@ -94,7 +94,25 @@ class ATDetector:
             cv2.imshow(str(fname), color)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
-
+    def estimate_image_orientation(self,fname):
+        img = cv2.imread(fname, cv2.IMREAD_GRAYSCALE)
+        if self.camera["fisheye"]:
+            img = self.undistort(img)
+        detected_tags = self.detector.detect(img, estimate_tag_pose=True, camera_params=self.camera["params"],
+                                             tag_size=self.tag_size)
+        for tag in detected_tags:
+            R=tag.pose_R
+            if self.camera["flipped"]:
+                R = np.matmul(self.camera["flip_correction"],R)
+            print(R)
+            y_rot = np.arcsin(R[2][0])
+            x_rot = np.arccos(R[2][2] / np.cos(y_rot))
+            z_rot = np.arccos(R[0][0] / np.cos(y_rot))
+            theta_y = y_rot * (180 / np.pi)
+            theta_x = x_rot * (180 / np.pi)
+            theta_z = z_rot * (180 / np.pi)
+            print(f"Tag {tag.tag_id} estimates the camera pose with:\nTheta_x:{theta_x}\n"f"Theta_y:{theta_y}"
+                  f"\nTheta_Z:{theta_z}")
     def find_top_left_corner(self, corners):
         min_idx = 0
         min_val = 100000
