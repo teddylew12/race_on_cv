@@ -10,7 +10,7 @@ class ATDetector:
         self.camera = camera
         self.tag_size = tag_size
 
-    def estimate_video_pose(self, fname, show_animation=True):
+    def estimate_video_pose(self, fname, tag_locations=None, show_animation=True):
         video = cv2.VideoCapture(fname)
         poses = np.zeros(shape=(3, 1))
         while True:
@@ -27,6 +27,8 @@ class ATDetector:
                     pose = np.matmul(self.camera["flip_correction"], tag.pose_t)
                 else:
                     pose = tag.pose_t
+                if tag_locations:
+                    pose = pose + tag_locations[tag.tag_id]
                 tmp_poses.append(pose)
             if tmp_poses:
                 poses=np.concatenate((poses, np.mean(np.concatenate(tmp_poses, axis=1), axis=1, keepdims=True)), axis=1)
@@ -41,21 +43,27 @@ class ATDetector:
                 plt.pause(0.001)
         return poses
 
-    def estimate_image_pose(self, fname):
+    def estimate_image_pose(self, fname, tag_locations=None):
         img = cv2.imread(fname, cv2.IMREAD_GRAYSCALE)
         if self.camera["fisheye"]:
             img = self.undistort(img)
         detected_tags = self.detector.detect(img, estimate_tag_pose=True, camera_params=self.camera["params"],
                                              tag_size=self.tag_size)
         for tag in detected_tags:
-            print(f"Tag {tag.tag_id} estimates the camera at:\nX:{tag.pose_t[0,0]}\n"f"Y:{tag.pose_t[1,0]}"
-                  f"\nZ:{tag.pose_t[2,0]}")
+            pose=tag.pose_t
+            if self.camera["flipped"]:
+                pose = np.matmul(self.camera["flip_correction"], tag.pose_t)
+            tag_id=tag.tag_id
+            if tag_locations:
+                pose = pose + tag_locations[tag_id]
+            print(f"Tag {tag_id} estimates the camera at:\nX:{pose[0,0]}\n"f"Y:{pose[1,0]}"
+                  f"\nZ:{pose[2,0]}")
     def visualize_frame(self,img,scale):
         if self.camera["fisheye"]:
             img = self.undistort(img)
         detected_tags = self.detector.detect(img, estimate_tag_pose=False)
         if not detected_tags:
-            print("Warning: No Tag Found in Image")
+            print("Warning: No Tag Found in Frame")
         color = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
         for tag in sorted(detected_tags, key=lambda x: x.tag_id):
             # Get corners of the tag in the image
@@ -94,6 +102,7 @@ class ATDetector:
             cv2.imshow(str(fname), color)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
+        cv2.destroyAllWindows()
     def estimate_image_orientation(self,fname):
         img = cv2.imread(fname, cv2.IMREAD_GRAYSCALE)
         if self.camera["fisheye"]:
