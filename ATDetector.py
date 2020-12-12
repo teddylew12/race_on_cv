@@ -51,6 +51,7 @@ class ATDetector:
                                              tag_size=self.tag_size)
         for tag in detected_tags:
             pose=tag.pose_t
+            import pdb;pdb.set_trace()
             if self.camera["flipped"]:
                 pose = np.matmul(self.camera["flip_correction"], tag.pose_t)
             tag_id=tag.tag_id
