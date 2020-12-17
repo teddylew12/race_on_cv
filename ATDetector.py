@@ -75,6 +75,7 @@ class ATDetector:
     def estimate_image_position(self, fname, tag_locations=None):
         img = cv2.imread(fname, cv2.IMREAD_GRAYSCALE)
         if self.camera["fisheye"]:
+            
             img = self.undistort(img)
         detected_tags = self.detector.detect(img, estimate_tag_pose=True, camera_params=self.camera["params"],
                                              tag_size=self.tag_size)
