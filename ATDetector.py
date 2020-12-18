@@ -177,4 +177,5 @@ class ATDetector:
     def undistort(self, img):
         map1, map2 = cv2.fisheye.initUndistortRectifyMap(self.camera["K"], self.camera["D"], np.eye(3),
                                                          self.camera["K"], self.camera["res"], cv2.CV_16SC2)
-        return cv2.remap(img, map1, map2, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
+        
+        return cv2.remap(img, map1, map2, interpolation=cv2.INTER_LINEAR)
