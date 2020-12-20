@@ -93,23 +93,17 @@ class ATDetector:
         detected_tags = self.detector.detect(img, estimate_tag_pose=False)
         if not detected_tags:
             print("Warning: No Tag Found in Frame")
-        color = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-        for tag in sorted(detected_tags, key=lambda x: x.tag_id):
-            # Get corners of the tag in the image
-            left, right = self.find_top_left_corner(tag.corners)
-            # Add a box around the tag
-            area = (np.abs(left[0] - right[0])) ^ 2
-            # Add a box around the tag
-            color = cv2.rectangle(color, left, right, color=(255, 255, 0), thickness=10)
-            # Add marks for 0th and 1st corner to check orientation
-            color = cv2.circle(color, (int(tag.corners[0][0]), int(tag.corners[0][1])), 10, color=(255, 0, 255),
-                               thickness=10)
-            color = cv2.circle(color, (int(tag.corners[1][0]), int(tag.corners[1][1])), 10, color=(128, 128, 255),
-                               thickness=10)
-            # Add some text with the tag number
-            text_loc = (left[0], left[1] - area)
-            color = cv2.putText(color, f"Tag #{tag.tag_id}", text_loc, fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                                fontScale=.05 * area, color=(255, 0, 0), thickness=5)
+        
+        color_img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+        for tag in tags:
+            for idx in range(len(tag.corners)):
+            cv2.line(color_img, tuple(tag.corners[idx-1, :].astype(int)), tuple(tag.corners[idx, :].astype(int)), (0, 255, 0))
+
+            cv2.putText(color_img, str(tag.tag_id),
+                    org=(tag.corners[0, 0].astype(int)+10,tag.corners[0, 1].astype(int)+10),
+                    fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                    fontScale=0.8,
+                    color=(0, 0, 255))
         return self.scale(color, scale)
 
     def visualize_image_detections(self, fname, scale=.3):
