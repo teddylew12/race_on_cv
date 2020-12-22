@@ -17,7 +17,6 @@ class Stream():
         self.run_name = run_name
 
         # Timing arrays
-        self.read = []
         self.undist = []
         self.detect = []
         self.end = []
@@ -27,25 +26,18 @@ class Stream():
         self.frames = []
         self.found_tags = []
 
-    def undistort(self, img):
-        return cv2.remap(img, self.camera_info["map_1"], self.camera_info["map_2"], interpolation=cv2.INTER_LINEAR)
-
     def write(self, data):
         '''
-        Called when new image is available
+        Called when new frame is available
         '''
-        # Start timere
+        # Start timer
         t1 = time()
 
         # Get the Y component which is the gray image
-        I_distorted = np.frombuffer(data,
-                                    dtype=np.uint8,
-                                    count=self.res[0] * self.res[1]).reshape(self.res[1], self.res[0])
-
-        self.read.append(time() - t1)
+        I_raw = np.frombuffer(data,dtype=np.uint8,count=self.res[0] * self.res[1]).reshape(self.res[1], self.res[0])
 
         # Remove fisheye distortion
-        I = self.undistort(I_distorted)
+        I = self.undistort(I_raw)
         self.frames.append(I)
         self.undist.append(time() - t1)
 
@@ -56,15 +48,10 @@ class Stream():
         self.detect.append(time() - t1)
 
         # Raw pose estimation from detected tags
-        tmp_poses = []
-        for t in detected_tags:
-            pose = self.tags.orientations[t.tag_id] @ (self.tags.tag_corr @ t.pose_t) + self.tags.locations[t.tag_id]
-            tmp_poses.append(pose)
+        tmp_poses= [self.tags.transform_to_global_frame(t.tag_id,t.pose_t) for t in detected_tags]
 
         # Apply filtering to smooth results
-
-        dt = time() - t1
-        smoothed_position = self.ghfilter(tmp_poses, dt)
+        smoothed_position = self.ghfilter(tmp_poses, time() - t1)
         self.positions = np.hstack((self.positions, smoothed_position))
         self.end.append(time() - t1)
 
@@ -95,27 +82,6 @@ class Stream():
             self.raw_positions = np.hstack((self.raw_positions, self.raw_positions[:, -1:]))
             return self.positions[:, -1:] + dt * v
 
-    def save_positions(self):
-        # Save smoothed positions
-        fname = self.run_name + ".npy"
-        np.save(fname, self.positions)
-
-        # Save unsmoothed positions
-        raw_fname = self.run_name + "_raw.npy"
-        np.save(raw_fname, self.raw_positions)
-
-    def load_positions(self, fname):
-        self.positions = np.load(fname)
-
-    def print_statistics(self, max_time):
-
-        print(f"Time to Read:{np.mean(self.read)}")
-        print(f"Time to Undistort:{np.mean(self.undist)-np.mean(self.read)}")
-        print(f"Time to Detect:{np.mean(self.detect)-np.mean(self.undist)}")
-        print(f"Time to End of Loop:{np.mean(self.end)-np.mean(self.detect)}")
-        print(f"TRUE FPS: {self.positions.shape[1]/max_time}")
-        print(f"EST FPS from DT: {1/np.mean(self.dts)}")
-
     def visualize_frame(self, img, tags):
         color_img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
 
@@ -132,15 +98,6 @@ class Stream():
                         color=(0, 0, 255),
                         thickness=3)
         return color_img
-
-    def save_video(self, max_time):
-        fname = self.run_name + ".avi"
-        writer = cv2.VideoWriter(fname,
-                                 cv2.VideoWriter_fourcc(*'MJPG'),
-                                 np.floor(self.positions.shape[1] / max_time), self.res)
-        for i, frame in enumerate(self.frames):
-            writer.write(self.visualize_frame(frame, self.found_tags[i]))
-        writer.release()
 
     def scatter_position(self):
         savename = self.run_name + ".png"
@@ -194,3 +151,35 @@ class Stream():
             shutil.rmtree(image_folder)
         except OSError as e:
             print("Error: %s : %s" % (image_folder, e.strerror))
+
+    def save_positions(self):
+        # Save smoothed positions
+        fname = self.run_name + ".npy"
+        np.save(fname, self.positions)
+
+        # Save unsmoothed positions
+        raw_fname = self.run_name + "_raw.npy"
+        np.save(raw_fname, self.raw_positions)
+
+    def load_positions(self, fname):
+        self.positions = np.load(fname)
+
+    def print_statistics(self, max_time):
+
+        print(f"Time to Undistort:{np.mean(self.undist)}")
+        print(f"Time to Detect:{np.mean(self.detect)-np.mean(self.undist)}")
+        print(f"Time to End of Loop:{np.mean(self.end)-np.mean(self.detect)}")
+        print(f"TRUE FPS: {self.positions.shape[1]/max_time}")
+        print(f"EST FPS from DT: {1/np.mean(self.dts)}")
+
+    def save_video(self, max_time):
+        fname = self.run_name + ".avi"
+        writer = cv2.VideoWriter(fname,
+                                 cv2.VideoWriter_fourcc(*'MJPG'),
+                                 np.floor(self.positions.shape[1] / max_time), self.res)
+        for i, frame in enumerate(self.frames):
+            writer.write(self.visualize_frame(frame, self.found_tags[i]))
+        writer.release()
+
+    def undistort(self, img):
+        return cv2.remap(img, self.camera_info["map_1"], self.camera_info["map_2"], interpolation=cv2.INTER_LINEAR)

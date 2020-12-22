@@ -31,3 +31,6 @@ class Tag():
         R = np.matmul(R_z, np.matmul(R_y, R_x))
 
         return R.T
+
+    def transform_to_global_frame(self, tag_id, local_pose):
+        return self.orientations[tag_id] @ (self.tag_corr @ local_pose) + self.locations[tag_id]
