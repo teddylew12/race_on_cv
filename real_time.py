@@ -46,7 +46,7 @@ tags = Tag(TAG_SIZE, FAMILIES)
 tags.locations[0] = np.array([[.10795], [.7493], [0]])
 tags.locations[1] = np.array([[1.1303], [.762], [0]])
 tags.locations[2] = np.array([[.4953], [1.35255], [0]])
-tags.locations[3] = np.array([[-1.816], [1.3081], [0.508]])
+tags.locations[3] = np.array([[-1.816], [1.32715], [.55245]])
 tags.locations[4] = np.array([[-1.816], [0.9906], [0.863]])
 
 tags.orientations[0] = tags.eulerAnglesToRotationMatrix([0., 0., 0.])
