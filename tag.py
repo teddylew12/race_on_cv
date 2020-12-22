@@ -5,6 +5,9 @@ class Tag():
         self.size=tag_size
         self.locations={}
         self.orientations={}
+        corr=np.eye(3)
+        corr[0,0]=-1
+        self.tag_corr=corr
     # Calculates Rotation Matrix given euler angles.
     def eulerAnglesToRotationMatrix(self,theta) :
         R_x = np.array([[1,         0,                0                 ],
@@ -24,4 +27,4 @@ class Tag():
               
         R = np.matmul(R_z, np.matmul( R_y, R_x ))
 
-        return R
+        return R.T

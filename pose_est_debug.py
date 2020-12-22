@@ -5,22 +5,7 @@ from tag import Tag
 import cv2
 from time import sleep, time
 from picamera import PiCamera
-import matplotlib.pyplot as plt
-from argparse import ArgumentParser
-parser=ArgumentParser()
-parser.add_argument("-rn","--run_name",type=str,required=True)
-parser.add_argument("-t","--run_time",type=int)
-args=parser.parse_args()
-vid_name=f"{args.run_name}.avi"
-ani_name=f"{args.run_name}_ani.avi"
-pos_name=f"{args.run_name}.npy"
-raw_pos_name=f"{args.run_name}_raw.npy"
-s_name=f"{args.run_name}.png"
-if args.run_time:
-    MAX_TIME=args.run_time
-else:
-    MAX_TIME = 4
-FPS = 50
+
 RES = (640, 480)
 
 TAG_SIZE=.123
@@ -29,14 +14,15 @@ tags=Tag(TAG_SIZE,FAMILIES)
 tags.locations[0]=np.array([[.10795],[.7493],[0]])
 tags.locations[1]=np.array([[1.1303],[.762],[0]])
 tags.locations[2]=np.array([[.4953],[1.35255],[0]])
-tags.locations[3]=np.array([[-1.816],[1.3081],[0.508]])
-tags.locations[4]=np.array([[-1.816],[0.9906],[0.863]])
+tags.locations[3]=np.array([[2.74955],[1.55321],[2.08915]])
+tags.locations[4]=np.array([[2.74955],[1.58115],[2.71145]])
 
 tags.orientations[0]=tags.eulerAnglesToRotationMatrix([0.,0.,0.])
 tags.orientations[1]=tags.eulerAnglesToRotationMatrix([0.,0.,0.])
 tags.orientations[2]=tags.eulerAnglesToRotationMatrix([0.,0.,0.])
-tags.orientations[3]=tags.eulerAnglesToRotationMatrix([0.,-np.pi/2.,0.])
-tags.orientations[4]=tags.eulerAnglesToRotationMatrix([0.,-np.pi/2.,0.])
+tags.orientations[3]=tags.eulerAnglesToRotationMatrix([0.,np.pi/2.,0.])
+tags.orientations[4]=tags.eulerAnglesToRotationMatrix([0.,np.pi/2.,0.])
+
 
 detector = Detector(families=tags.family,nthreads=4)
 
@@ -60,34 +46,33 @@ camera_info["fisheye"] = True
 camera_info["map_1"],camera_info["map_2"]  = cv2.fisheye.initUndistortRectifyMap(camera_info["K"], camera_info["D"], 
                                                                   np.eye(3), camera_info["K"], 
                                                                   camera_info["res"], cv2.CV_16SC2)
-starting_position=np.array([[.635],[1.0668],[2.7432]])
 
+
+
+stream1 = open('image.data', 'w+b')
+# Capture the image in YUV format
 with PiCamera() as camera:
-    sleep(2)
-    print("Starting")
     camera.resolution = RES
-    camera.framerate = FPS
-    camera.shutter_speed = int(1000000 /(3*FPS))
-    stream = Stream(detector,camera_info,tags,starting_position)
-    
-    try:
-        camera.start_recording(stream, format='yuv')
-        t0 = time()
-        
-        while True:
-            camera.wait_recording(1)
-            #The signal code is not stopping the recording, so I added this
-            if (time()-t0) > MAX_TIME:
-                camera.stop_recording()
-                break
-                
-    except Exception as e:
-        print(e)
-        camera.close()
-    stream.print_statistics(MAX_TIME)
-    stream.save_video(vid_name,MAX_TIME)
-    stream.save_positions(pos_name,raw_pos_name)
-    stream.scatter_position(s_name)
-    #stream.animate_position(ani_name)
-    import pdb;pdb.set_trace()
-    camera.close()
+    camera.start_preview()
+    sleep(2)
+    camera.capture(stream1, 'yuv')
+# Rewind the stream for reading
+stream1.seek(0)
+# Calculate the actual image size in the stream (accounting for rounding
+# of the resolution)
+fwidth = (RES[0] + 31) // 32 * 32
+fheight = (RES[1] + 15) // 16 * 16
+# Load the Y (luminance) data from the stream
+I_distorted = np.fromfile(stream1, dtype=np.uint8, count=fwidth*fheight).reshape((fheight, fwidth))                                                               
+
+I = cv2.remap(I_distorted, camera_info["map_1"], camera_info["map_2"], interpolation=cv2.INTER_LINEAR)
+detected_tags = detector.detect(I, estimate_tag_pose=True, camera_params=camera_info["params"],
+                                                     tag_size=tags.size)
+tmp_poses=[]
+for tag in detected_tags:
+    pose_est = np.matmul(tags.orientations[tag.tag_id],np.matmul(tags.tag_corr,tag.pose_t)) + tags.locations[tag.tag_id]
+    tmp_poses.append(pose_est)
+avg = np.mean(np.concatenate(tmp_poses, axis=1), axis=1, keepdims=True)
+
+print(avg)
+import pdb;pdb.set_trace()
