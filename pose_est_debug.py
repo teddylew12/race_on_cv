@@ -11,21 +11,12 @@ RES = (640, 480)
 TAG_SIZE=.123
 FAMILIES = "tagStandard41h12"
 tags=Tag(TAG_SIZE,FAMILIES)
-tags.locations[0]=np.array([[.10795],[.7493],[0]])
-tags.locations[1]=np.array([[1.1303],[.762],[0]])
-tags.locations[2]=np.array([[.4953],[1.35255],[0]])
-tags.locations[3]=np.array([[2.74955],[1.55321],[2.08915]])
-tags.locations[4]=np.array([[2.74955],[1.58115],[2.71145]])
-
-tags.orientations[0]=tags.eulerAnglesToRotationMatrix([0.,0.,0.])
-tags.orientations[1]=tags.eulerAnglesToRotationMatrix([0.,0.,0.])
-tags.orientations[2]=tags.eulerAnglesToRotationMatrix([0.,0.,0.])
-tags.orientations[3]=tags.eulerAnglesToRotationMatrix([0.,np.pi/2.,0.])
-tags.orientations[4]=tags.eulerAnglesToRotationMatrix([0.,np.pi/2.,0.])
-
+tags.locations[1] = np.array([[0.], [0.], [0.]])
+tags.orientations[1] = tags.eulerAnglesToRotationMatrix([0., 0., 0.])
+tags.locations[2] = np.array([[0.], [0.], [0.]])
+tags.orientations[2] = tags.eulerAnglesToRotationMatrix([0., 0., 0.])
 
 detector = Detector(families=tags.family,nthreads=4)
-
 
 camera_info = {}
 #Camera Resolution
@@ -54,6 +45,7 @@ stream1 = open('image.data', 'w+b')
 with PiCamera() as camera:
     camera.resolution = RES
     camera.start_preview()
+    print("2 Seconds")
     sleep(2)
     camera.capture(stream1, 'yuv')
 # Rewind the stream for reading
@@ -63,16 +55,20 @@ stream1.seek(0)
 fwidth = (RES[0] + 31) // 32 * 32
 fheight = (RES[1] + 15) // 16 * 16
 # Load the Y (luminance) data from the stream
-I_distorted = np.fromfile(stream1, dtype=np.uint8, count=fwidth*fheight).reshape((fheight, fwidth))                                                               
-
-I = cv2.remap(I_distorted, camera_info["map_1"], camera_info["map_2"], interpolation=cv2.INTER_LINEAR)
-detected_tags = detector.detect(I, estimate_tag_pose=True, camera_params=camera_info["params"],
+I1_distorted = np.fromfile(stream1, dtype=np.uint8, count=fwidth*fheight).reshape((fheight, fwidth))
+#I2_distorted = np.fromfile(stream2, dtype=np.uint8, count=fwidth*fheight).reshape((fheight, fwidth))
+I1 = cv2.remap(I1_distorted, camera_info["map_1"], camera_info["map_2"], interpolation=cv2.INTER_LINEAR)
+#I2 = cv2.remap(I2_distorted, camera_info["map_1"], camera_info["map_2"], interpolation=cv2.INTER_LINEAR)
+detected_tags1 = detector.detect(I1, estimate_tag_pose=True, camera_params=camera_info["params"],
                                                      tag_size=tags.size)
-tmp_poses=[]
-for tag in detected_tags:
-    pose_est = np.matmul(tags.orientations[tag.tag_id],np.matmul(tags.tag_corr,tag.pose_t)) + tags.locations[tag.tag_id]
-    tmp_poses.append(pose_est)
-avg = np.mean(np.concatenate(tmp_poses, axis=1), axis=1, keepdims=True)
+#detected_tags2 = detector.detect(I2, estimate_tag_pose=True, camera_params=camera_info["params"],
+#                                                     tag_size=tags.size)
 
-print(avg)
+#for t in detected_tags1: 
+    #print(t.tag_id,f"{ (t.pose_R @ (tags.tag_corr @ tags.locations[t.tag_id]) + t. pose_t)}")
+for t in detected_tags1:
+    print(f"{t.tag_id}")
+    print(tags.transform_to_global_frame(t.tag_id, t.pose_R,t.pose_t)):
+
 import pdb;pdb.set_trace()
+x=1

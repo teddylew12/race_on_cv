@@ -48,13 +48,19 @@ class Stream():
         self.detect.append(time() - t1)
 
         # Raw pose estimation from detected tags
-        tmp_poses= [self.tags.transform_to_global_frame(t.tag_id,t.pose_t) for t in detected_tags]
+        tmp_poses= [self.tags.transform_to_global_frame(t.tag_id,t.pose_R,t.pose_t) for t in detected_tags]
 
         # Apply filtering to smooth results
-        smoothed_position = self.ghfilter(tmp_poses, time() - t1)
+        #smoothed_position = self.ghfilter(tmp_poses, time() - t1)
+        smoothed_position  = self.moving_average(tmp_poses,4)
+        
         self.positions = np.hstack((self.positions, smoothed_position))
         self.end.append(time() - t1)
-
+    def moving_average(self, measurements,num_steps):
+        if self.positions.shape[1]<=num_steps:
+            return np.mean(np.hstack(self.positions,measurements),axis=1,keepdims=True)
+        else:
+            return np.mean(np.hstack(self.positions[:,-num_steps:],measurements),axis=1,keepdims=True)
     def ghfilter(self, measurements, time_step_est):
         '''
         GH filter implementation with H=0, current only works with straight line in -Z direction

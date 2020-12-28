@@ -32,5 +32,8 @@ class Tag():
 
         return R.T
 
-    def transform_to_global_frame(self, tag_id, local_pose):
-        return self.orientations[tag_id] @ (self.tag_corr @ local_pose) + self.locations[tag_id]
+    def transform_to_global_frame(self, tag_id, R,t):
+        local = self.tag_corr @ R.T @ t
+        return self.orientations[tag_id] @ local + self.locations[tag_id]
+    def inches_to_cm(self,x,y,z):
+        return np.array([[x],[y],[z]])*0.0254
