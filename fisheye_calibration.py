@@ -3,15 +3,39 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pickle
 import glob
+import time
+import picamera
+import os
+from argparse import ArgumentParser
 
-# Function to undistort captured images
-def undistort_current_image(I, map1, map2 ):
+def undistort_current_image(I, map1, map2):
     undistorted_img = cv2.remap(I, map1, map2, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
     return undistorted_img
 
+parser=ArgumentParser()
+parser.add_argument("-num","--num_photos",default=30,type=int)
+parser.add_argument("-resx",default=640,type=int)
+parser.add_argument("-resy",default=480,type=int)
+parser.add_argument("-f","--folder_name",type=str)
+args=parser.parse_args()
+if args.folder_name:
+    folder_name = args.folder_name + "/"
+else:
+    folder_name= f"calibration_{args.resx}_{args.resy}/"
+os.makedirs(folder_name,exist_ok=True)
+# Function to undistort captured images
+RES = (args.resx,args.resy)
+#Initialize Camera Object
+with picamera.PiCamera(resolution=RES) as camera:
+    #Take and save pictures
+    for num in range(args.num_photos):
+        camera.start_preview()
+        time.sleep(3)
+        fname=folder_name+str(num)+".png"
+        camera.capture(fname)
 
 
-img_folder=glob.glob("calib_640_480/*.png")
+img_folder=glob.glob(folder_name+ "*.png")
 # Initialize properly sized arrays and some other openCV preparation steps
 CHECKERBOARD = (7, 9)  # this tuple must contain the number of color changes per column and line respectively
 # (which equals number of squares minus 1)
