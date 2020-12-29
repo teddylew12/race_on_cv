@@ -45,11 +45,11 @@ camera_info["map_1"], camera_info["map_2"] = cv2.fisheye.initUndistortRectifyMap
 TAG_SIZE = .123
 FAMILIES = "tagStandard41h12"
 tags = Tag(TAG_SIZE, FAMILIES)
-tags.locations[0] = tags.inches_to_cm(76.25,30.5,0.)
-tags.locations[1] = tags.inches_to_cm(115.,31.5,0.)
-tags.locations[2] = tags.inches_to_cm(95.75,50.,0.)
-tags.locations[3] = tags.inches_to_cm(0.,41.,38.75)
-tags.locations[4] = tags.inches_to_cm(0.,54.,19.25)
+tags.locations[0] = tags.inchesToTranslationVector(76.25,30.5,0.)
+tags.locations[1] = tags.inchesToTranslationVector(115.,31.5,0.)
+tags.locations[2] = tags.inchesToTranslationVector(95.75,50.,0.)
+tags.locations[3] = tags.inchesToTranslationVector(0.,41.,38.75)
+tags.locations[4] = tags.inchesToTranslationVector(0.,54.,19.25)
 
 tags.orientations[0] = tags.eulerAnglesToRotationMatrix([0., 0., 0.])
 tags.orientations[1] = tags.eulerAnglesToRotationMatrix([0., 0., 0.])

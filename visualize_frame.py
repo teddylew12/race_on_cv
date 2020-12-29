@@ -1,21 +1,42 @@
 import numpy as np
 from pupil_apriltags import Detector
-from stream import Stream
 from tag import Tag
 import cv2
 from time import sleep, time
 from picamera import PiCamera
 
 RES = (640, 480)
+def visualize_frame(img, tags):
+    color_img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
 
+    for tag in tags:
+        # Add bounding rectangle
+        for idx in range(len(tag.corners)):
+            cv2.line(color_img, tuple(tag.corners[idx - 1, :].astype(int)), tuple(tag.corners[idx, :].astype(int)),
+                     (0, 255, 0), thickness=3)
+        # Add Tag ID text
+        cv2.putText(color_img, str(tag.tag_id),
+                    org=(tag.corners[0, 0].astype(int) + 10, tag.corners[0, 1].astype(int) + 10),
+                    fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                    fontScale=0.8,
+                    color=(0, 0, 255),
+                    thickness=3)
+        # Add Tag Corner
+        cv2.circle(color_img, tuple(tag.corners[0].astype(int)),2, color=(255, 0, 255),thickness=3)
+    return color_img
+
+#Create a Tag object 
 TAG_SIZE=.123
 FAMILIES = "tagStandard41h12"
 tags=Tag(TAG_SIZE,FAMILIES)
-tags.locations[1] = np.array([[0.], [0.], [0.]])
-tags.orientations[1] = tags.eulerAnglesToRotationMatrix([0., 0., 0.])
-tags.locations[2] = np.array([[0.], [0.], [0.]])
-tags.orientations[2] = tags.eulerAnglesToRotationMatrix([0., 0., 0.])
 
+# Add information about the environment
+tags.locations[0] = tags.inchesToTranslationVector(76.25,30.5,0.)
+tags.orientations[0] = tags.eulerAnglesToRotationMatrix([0., 0., 0.])
+tags.locations[1] = tags.inchesToTranslationVector(76.25,30.5,0.)
+tags.orientations[1] = tags.eulerAnglesToRotationMatrix([0., 0., 0.])
+
+#Create Detector
 detector = Detector(families=tags.family,nthreads=4)
 
 camera_info = {}
@@ -38,37 +59,30 @@ camera_info["map_1"],camera_info["map_2"]  = cv2.fisheye.initUndistortRectifyMap
                                                                   np.eye(3), camera_info["K"], 
                                                                   camera_info["res"], cv2.CV_16SC2)
 
-
-
-stream1 = open('image.data', 'w+b')
+stream = open('image.data', 'w+b')
 # Capture the image in YUV format
 with PiCamera() as camera:
     camera.resolution = RES
     camera.start_preview()
     print("2 Seconds")
     sleep(2)
-    camera.capture(stream1, 'yuv')
+    camera.capture(stream, 'yuv')
 # Rewind the stream for reading
-stream1.seek(0)
+stream.seek(0)
 # Calculate the actual image size in the stream (accounting for rounding
 # of the resolution)
 fwidth = (RES[0] + 31) // 32 * 32
 fheight = (RES[1] + 15) // 16 * 16
 # Load the Y (luminance) data from the stream
-I1_distorted = np.fromfile(stream1, dtype=np.uint8, count=fwidth*fheight).reshape((fheight, fwidth))
-#I2_distorted = np.fromfile(stream2, dtype=np.uint8, count=fwidth*fheight).reshape((fheight, fwidth))
-I1 = cv2.remap(I1_distorted, camera_info["map_1"], camera_info["map_2"], interpolation=cv2.INTER_LINEAR)
-#I2 = cv2.remap(I2_distorted, camera_info["map_1"], camera_info["map_2"], interpolation=cv2.INTER_LINEAR)
-detected_tags1 = detector.detect(I1, estimate_tag_pose=True, camera_params=camera_info["params"],
+I_distorted = np.fromfile(stream, dtype=np.uint8, count=fwidth*fheight).reshape((fheight, fwidth))
+I = cv2.remap(I_distorted, camera_info["map_1"], camera_info["map_2"], interpolation=cv2.INTER_LINEAR)
+
+detected_tags = detector.detect(I, estimate_tag_pose=True, camera_params=camera_info["params"],
                                                      tag_size=tags.size)
-#detected_tags2 = detector.detect(I2, estimate_tag_pose=True, camera_params=camera_info["params"],
-#                                                     tag_size=tags.size)
-
-#for t in detected_tags1: 
-    #print(t.tag_id,f"{ (t.pose_R @ (tags.tag_corr @ tags.locations[t.tag_id]) + t. pose_t)}")
-for t in detected_tags1:
+for t in detected_tags:
     print(f"{t.tag_id}")
-    print(tags.transform_to_global_frame(t.tag_id, t.pose_R,t.pose_t)):
-
-import pdb;pdb.set_trace()
-x=1
+    print(tags.estimate_pose(t.tag_id, t.pose_R,t.pose_t))
+#Visualize The Frame
+cv2.imshow("Visualized Tags", visualize_frame(I,detected_tags))
+cv2.waitKey(0) # waits until a key is pressed
+cv2.destroyAllWindows() # destroys the window showing image

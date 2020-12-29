@@ -48,7 +48,7 @@ class Stream():
         self.detect.append(time() - t1)
 
         # Raw pose estimation from detected tags
-        tmp_poses= [self.tags.transform_to_global_frame(t.tag_id,t.pose_R,t.pose_t) for t in detected_tags]
+        tmp_poses= [self.tags.estimate_pose(t.tag_id,t.pose_R,t.pose_t) for t in detected_tags]
 
         # Apply filtering to smooth results
         #smoothed_position = self.ghfilter(tmp_poses, time() - t1)
@@ -103,6 +103,7 @@ class Stream():
                         fontScale=0.8,
                         color=(0, 0, 255),
                         thickness=3)
+            cv2.circle(color_img, tuple(tag.corners[0].astype(int)),2, color=(255, 0, 255),thickness=3)
         return color_img
 
     def scatter_position(self):
