@@ -6,7 +6,8 @@ import cv2
 from time import sleep, time
 from picamera import PiCamera
 from argparse import ArgumentParser
-from  pdb import set_trace
+from pdb import set_trace
+
 # Get time of stream and name for saving outputs
 parser = ArgumentParser()
 parser.add_argument("-rn", "--run_name", type=str, required=True)
@@ -45,17 +46,13 @@ camera_info["map_1"], camera_info["map_2"] = cv2.fisheye.initUndistortRectifyMap
 TAG_SIZE = .123
 FAMILIES = "tagStandard41h12"
 tags = Tag(TAG_SIZE, FAMILIES)
-tags.locations[0] = tags.inchesToTranslationVector(76.25,30.5,0.)
-tags.locations[1] = tags.inchesToTranslationVector(115.,31.5,0.)
-tags.locations[2] = tags.inchesToTranslationVector(95.75,50.,0.)
-tags.locations[3] = tags.inchesToTranslationVector(0.,41.,38.75)
-tags.locations[4] = tags.inchesToTranslationVector(0.,54.,19.25)
-
-tags.orientations[0] = tags.eulerAnglesToRotationMatrix([0., 0., 0.])
-tags.orientations[1] = tags.eulerAnglesToRotationMatrix([0., 0., 0.])
-tags.orientations[2] = tags.eulerAnglesToRotationMatrix([0., 0., 0.])
-tags.orientations[3] = tags.eulerAnglesToRotationMatrix([0., -np.pi/2, 0.])
-tags.orientations[4] = tags.eulerAnglesToRotationMatrix([0.,-np.pi/2., 0.])
+# Add information about tag locations
+# Function Arguments are id,x,y,z,theta_x,theta_y,theta_z
+tags.add_tag(0, 76.25, 30.5, 0., 0., 0., 0.)
+tags.add_tag(1, 115., 31.5, 0., 0., 0., 0.)
+tags.add_tag(2, 95.75, 50., 0., 0., 0., 0.)
+tags.add_tag(3, 0., 41., 38.75, 0., -np.pi / 2, 0.)
+tags.add_tag(4, 0., 54., 19.25, 0., -np.pi / 2, 0.)
 
 starting_position = np.array([[.635], [1.0668], [2.7432]])
 
